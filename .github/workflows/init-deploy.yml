@@ -53,6 +53,17 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
           port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
 
+          envs: |
+            NODE_ENV
+            STORE_CORS
+            ADMIN_CORS
+            AUTH_CORS
+            REDIS_URL
+            JWT_SECRET
+            COOKIE_SECRET
+            DATABASE_URL
+            DB_NAME
+
           script: |
             echo "Executing deployment script on server..."
 
