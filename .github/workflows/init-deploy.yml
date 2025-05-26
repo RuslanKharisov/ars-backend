@@ -36,25 +36,22 @@ jobs:
 
       - name: Configure and Restart Medusa service
         # Используем action для выполнения команды по SSH
-        # uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
-        # with:
-        #   host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
-        #   username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
-        #   key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
-        #   port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
-        run: |
-          ssh -T -i ~/.ssh/id_ed25519 ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} /bin/bash --login << 'EOF'
-          set -euo pipefail
-
-          # 0. Загрузка окружения NVM
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
+        uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
+        with:
+          host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
+          username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
+          key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
+          port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
 
           script: |
             echo "Executing deployment script on server..."
 
             # Переходим в директорию проекта на сервере
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }   
+
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22.13.1
 
             # --- Установка зависимостей ---
             echo "Running yarn install..."
