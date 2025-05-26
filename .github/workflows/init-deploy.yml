@@ -36,41 +36,25 @@ jobs:
 
       - name: Configure and Restart Medusa service
         # Используем action для выполнения команды по SSH
-        uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
-        with:
-          host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
-          username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
-          key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
-          port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
+        # uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
+        # with:
+        #   host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
+        #   username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
+        #   key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
+        #   port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
+        run: |
+          ssh -T -i ~/.ssh/id_ed25519 ${{secrets.SSH_USER}}@${{secrets.SSH_HOST}} /bin/bash --login << 'EOF'
+          set -euo pipefail
+
+          # 0. Загрузка окружения NVM
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
 
           script: |
             echo "Executing deployment script on server..."
 
             # Переходим в директорию проекта на сервере
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }   
-
-            # Загрузка окружения NVM
-            # --- ИСПРАВЛЕНИЕ: Добавьте эти строки для корректной настройки PATH ---
-            # Это поможет найти команды типа 'yarn' и 'node', установленные стандартно или через менеджеры версий
-            echo "Sourcing profile files to configure PATH..."
-            if [ -f ~/.profile ]; then
-              . ~/.profile
-              echo ".profile sourced."
-            fi
-            if [ -f ~/.bashrc ]; then
-              . ~/.bashrc
-              echo ".bashrc sourced."
-            fi
-            # Если вы используете NVM, раскомментируйте и проверьте путь к nvm.sh
-            # if [ -s "$HOME/.nvm/nvm.sh" ]; then
-            #   . "$HOME/.nvm/nvm.sh"  # This loads nvm
-            #   echo "nvm.sh sourced."
-            # fi
-            # if [ -s "$HOME/.nvm/bash_completion" ]; then
-            #   . "$HOME/.nvm/bash_completion"  # This loads nvm bash_completion
-            #   echo "nvm bash_completion sourced."
-            # fi
-            # --- Конец исправления PATH ---
 
             # --- Установка зависимостей ---
             echo "Running yarn install..."
