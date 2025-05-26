@@ -57,7 +57,7 @@ jobs:
             echo "Running yarn install..."
             # Используем --frozen-lockfile в CI/CD для предсказуемости
             # --production пропустит devDependencies
-            yarn install --production --frozen-lockfile || { echo "Error: yarn install failed"; exit 1; }
+            yarn install --immutable --immutable-cache || { echo "Error: yarn install failed"; exit 1; }
             echo "yarn install finished."  
 
             # --- Сборка проекта ---
