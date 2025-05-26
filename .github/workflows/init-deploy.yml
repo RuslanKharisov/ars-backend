@@ -62,7 +62,7 @@ jobs:
             # --- Создание или обновление .env файла из env переменных JOB-а ---
             # Переменные, определенные на уровне JOB, доступны здесь как обычные $ПЕРЕМЕННАЯ.
 
-            echo "Creating or updating .env file..."
+            echo "Creating or updating .env file...."
             cat > .env << EOF
             NODE_ENV=${NODE_ENV}
             STORE_CORS=${STORE_CORS}
