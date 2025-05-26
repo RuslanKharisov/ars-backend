@@ -49,6 +49,10 @@ jobs:
             # Переходим в директорию проекта на сервере
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }   
 
+            # Загрузка окружения NVM
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
             # --- Установка зависимостей ---
             echo "Running yarn install..."
             # Используем --frozen-lockfile в CI/CD для предсказуемости
