@@ -98,7 +98,7 @@ jobs:
               # !!! ВАЖНО: Замените 'yarn start' на вашу фактическую команду запуска Medusa !!!
               # Например: node build/index.js, npm start, или yarn start
               # Для 'yarn start' команда для PM2 обычно выглядит так: pm2 start yarn --name ars-backend -- start
-              pm2 start yarn --name ars-backend -- start || { echo "Error: Failed to start PM2 process 'ars-backend'. Check PM2 logs on the server and ensure dependencies are installed."; exit 1; }
+              pm2 start "node .medusa/server" --name ars-backend || { echo "Error: Failed to start PM2 process 'ars-backend'. Check PM2 logs on the server and ensure dependencies are installed."; exit 1; }
               echo "PM2 process 'ars-backend' started successfully."
             fi
 
