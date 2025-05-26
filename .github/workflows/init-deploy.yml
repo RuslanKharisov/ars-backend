@@ -61,14 +61,13 @@ jobs:
             echo "yarn install finished." 
 
             # --- Восстанавливаем .env ---
-            - name: Restore .env
-              run: |
-                if [ -f /home/admin2/secrets/.env-backend ]; then
-                  cp /home/admin2/secrets/.env-backend .env.production
-                  echo ".env.production restored"
-                else
-                  echo "No .env-backend to copy"
-                fi
+            if [ -f /home/admin2/secrets/.env-backend ]; then
+              cp /home/admin2/secrets/.env-backend .env.production
+              echo ".env.production restored"
+            else
+              echo "No .env-backend to copy"
+            fi  
+
 
             # --- Сборка проекта ---
             # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
@@ -85,7 +84,7 @@ jobs:
               pm2 restart medusa-server || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
               echo "PM2 process 'medusa-server' restarted successfully."
             else
-              npx pm2 start --name medusa-server --yarn start --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
+              npx pm2 start --name medusa-server --run start --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
               echo "PM2 process 'medusa-server' started successfully."
             fi
 
@@ -94,7 +93,7 @@ jobs:
               pm2 restart medusa-worker || { echo "Error: Failed to restart 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' restarted successfully."
             else
-              npx pm2 start --name medusa-worker --yarn start --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
+              npx pm2 start --name medusa-worker --run start --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' started successfully."
             fi
 
