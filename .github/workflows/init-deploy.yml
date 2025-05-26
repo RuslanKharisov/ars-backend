@@ -50,8 +50,27 @@ jobs:
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }   
 
             # Загрузка окружения NVM
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            # --- ИСПРАВЛЕНИЕ: Добавьте эти строки для корректной настройки PATH ---
+            # Это поможет найти команды типа 'yarn' и 'node', установленные стандартно или через менеджеры версий
+            echo "Sourcing profile files to configure PATH..."
+            if [ -f ~/.profile ]; then
+              . ~/.profile
+              echo ".profile sourced."
+            fi
+            if [ -f ~/.bashrc ]; then
+              . ~/.bashrc
+              echo ".bashrc sourced."
+            fi
+            # Если вы используете NVM, раскомментируйте и проверьте путь к nvm.sh
+            # if [ -s "$HOME/.nvm/nvm.sh" ]; then
+            #   . "$HOME/.nvm/nvm.sh"  # This loads nvm
+            #   echo "nvm.sh sourced."
+            # fi
+            # if [ -s "$HOME/.nvm/bash_completion" ]; then
+            #   . "$HOME/.nvm/bash_completion"  # This loads nvm bash_completion
+            #   echo "nvm bash_completion sourced."
+            # fi
+            # --- Конец исправления PATH ---
 
             # --- Установка зависимостей ---
             echo "Running yarn install..."
