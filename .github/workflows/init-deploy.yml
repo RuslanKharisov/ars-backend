@@ -70,6 +70,21 @@ jobs:
             # Переходим в директорию проекта на сервере
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }
 
+
+            # --- ОТЛАДОЧНЫЙ ВЫВОД ---
+            echo "--- Debugging remote environment variables ---"
+            echo "NODE_ENV: '${NODE_ENV}'"
+            echo "STORE_CORS: '${STORE_CORS}'"
+            echo "ADMIN_CORS: '${ADMIN_CORS}'"
+            echo "AUTH_CORS: '${AUTH_CORS}'"
+            echo "REDIS_URL: '${REDIS_URL}'"
+            echo "JWT_SECRET: '${JWT_SECRET}'"
+            echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
+            echo "DATABASE_URL: '${DATABASE_URL}'"
+            echo "DB_NAME: '${DB_NAME}'"
+            echo "--- End Debugging ---"
+            # --------------------------
+
             # --- Создание или обновление .env файла из env переменных JOB-а ---
             # Переменные, определенные на уровне JOB, доступны здесь как обычные $ПЕРЕМЕННАЯ.
 
