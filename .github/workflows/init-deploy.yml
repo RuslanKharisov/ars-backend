@@ -1,75 +1,54 @@
-name: Init Deploy MedusaJS App
+name: Medusa B2B Deploy
 
 on:
-  workflow_dispatch: # Только вручную через GitHub UI
+  push:
+    branches:
+      - main # Убедитесь, что это имя вашей основной ветки (например, master)
 
 jobs:
-  init-deploy:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest # Вы можете использовать self-hosted runner, если нужно
 
     steps:
-      # 1. Клонируем репозиторий
-      - name: Checkout repository
+      - name: Checkout code
+        # Выгружает код из вашего репозитория
         uses: actions/checkout@v4
 
-      # 2. Создаем .env файл
-      - name: Create .env
-        run: |
-          echo "${{ secrets.ENV_BACKEND }}" > .env
+      # Пропускаем шаги сборки (например, yarn install, build) на CI runner,
+      # поскольку они будут выполнены вручную на сервере в первый раз.
 
-      # 3. Список файлов для копирования
-      - name: Prepare deploy archive
-        run: |
-          {
-            echo ".env"
-            echo "yarn.lock"
-            echo "package.json"
-            echo "tsconfig.json"
-            echo "medusa-config.js"
-            echo "src/"
-            echo "scripts/"
-            echo "data/"
-          } > deploy-list.txt
-          tar -czf deploy.tar.gz -T deploy-list.txt
-          ls -lh deploy.tar.gz
+      - name: Copy project files to server
+        # Используем action для копирования файлов по SCP
+        uses: appleboy/scp-action@v0.1.4 # Проверьте наличие более новой версии, если хотите
+        with:
+          host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
+          username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
+          key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
+          port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
+          source: "./" # Копируем все файлы и папки из корня репозитория
+          target: "/home/admin2/medusa-b2b" # Целевая директория на сервере
+          # Опционально: исключите определенные директории/файлы при копировании
+          # exclude: ".git,.github,node_modules,dist"
 
-      # 4. Настройка SSH
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+      - name: Restart Medusa service via PM2
+        # Используем action для выполнения команды по SSH
+        uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
+        with:
+          host: ${{ secrets.SSH_HOST }} # IP-адрес сервера из секретов GitHub
+          username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
+          key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
+          port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
+          script: |
+            # Переходим в директорию проекта на сервере
+            cd /home/admin2/medusa-b2b
 
-      # 5. Передача архива на сервер
-      - name: Transfer files to server
-        run: |
-          scp -i ~/.ssh/id_ed25519 deploy.tar.gz \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/deploy.tar.gz
+            # --- ВАЖНО ---
+            # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
+            # (yarn install, настройка БД, создание пользователя, запуск через PM2)
+            # ПОСЛЕ САМОГО ПЕРВОГО успешного копирования файлов этим рабочим процессом.
 
-      # 6. Распаковка на сервере
-      - name: Unpack and prepare on server
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-          set -euo pipefail
-
-          APP_DIR="/home/admin2/medusa-b2b"
-
-          echo "--- Preparing directory ---"
-          mkdir -p "$APP_DIR"
-          cd "$APP_DIR"
-          find . -maxdepth 1 ! -name '.' -exec rm -rf {} +
-
-          echo "--- Extracting project files ---"
-          tar -xzf /tmp/deploy.tar.gz
-          rm /tmp/deploy.tar.gz
-
-          echo "--- Project unpacked. Next steps (manual): ---"
-          echo "1. cd $APP_DIR"
-          echo "2. yarn install"
-          echo "3. yarn medusa db:create"
-          echo "4. yarn medusa db:migrate"
-          echo "5. yarn run seed"
-          echo "6. yarn medusa user -e admin@site.com -p strongpass -i admin"
-          echo "7. yarn start"
-          EOF
+            # Для последующих запусков эта команда перезапускает процесс PM2.
+            # Замените 'medusa-b2b' на фактическое имя вашего процесса PM2.
+            # Если PM2 не запущен или имя процесса неверно, эта команда может завершиться с ошибкой.
+            echo "Попытка перезапустить процесс PM2 'medusa-b2b'..."
+            pm2 restart medusa-b2b || echo "Не удалось перезапустить процесс PM2 'medusa-b2b'. Возможно, он не запущен или имя неверно. Проверьте вручную на сервере."
