@@ -13,17 +13,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest # Вы можете использовать self-hosted runner, если нужно
 
-    env:
-      NODE_ENV: production
-      STORE_CORS: ${{ secrets.STORE_CORS }}
-      # ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
-      # AUTH_CORS: ${{ secrets.AUTH_CORS }}
-      # REDIS_URL: ${{ secrets.REDIS_URL }}
-      # JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      # COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
-      # DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      # DB_NAME: ${{ secrets.DB_NAME }}
-
     steps:
       - name: Checkout code
         # Выгружает код из вашего репозитория
@@ -54,57 +43,24 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
           port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
 
-          envs: |
-            NODE_ENV
-            STORE_CORS
-            # ADMIN_CORS
-            # AUTH_CORS
-            # REDIS_URL
-            # JWT_SECRET
-            # COOKIE_SECRET
-            # DATABASE_URL
-            # DB_NAME
-
           script: |
             echo "Executing deployment script on server..."
 
             # Переходим в директорию проекта на сервере
-            cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }
+            cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }           
+
+            # Восстанавливаем .env
+            - name: Restore .env
+              run: |
+                if [ -f /home/admin2/secrets/.env-backend ]; then
+                  cp /home/admin2/secrets/.env-backend .env
+                  echo ".env restored"
+                else
+                  echo "No .env-backend to copy"
+                fi
 
 
-            # --- ОТЛАДОЧНЫЙ ВЫВОД ---
-            echo "--- Debugging remote environment variables ---"
-            echo "NODE_ENV: '${NODE_ENV}'"
-            echo "STORE_CORS: '${STORE_CORS}'"
-            # echo "ADMIN_CORS: '${ADMIN_CORS}'"
-            # echo "AUTH_CORS: '${AUTH_CORS}'"
-            # echo "REDIS_URL: '${REDIS_URL}'"
-            # echo "JWT_SECRET: '${JWT_SECRET}'"
-            # echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
-            # echo "DATABASE_URL: `${DATABASE_URL}`"
-            # echo "DB_NAME: '${DB_NAME}'"
-            echo "--- End Debugging ---"
-            # --------------------------
 
-            # --- Создание или обновление .env файла из env переменных JOB-а ---
-            # Переменные, определенные на уровне JOB, доступны здесь как обычные $ПЕРЕМЕННАЯ.
-
-            echo "Creating or updating .env file...."
-            cat > .env << 'EOF'
-            NODE_ENV=${NODE_ENV}
-            STORE_CORS=${STORE_CORS}
-            # ADMIN_CORS=${ADMIN_CORS}
-            # AUTH_CORS=${AUTH_CORS}
-            # REDIS_URL=${REDIS_URL}
-            # JWT_SECRET=${JWT_SECRET}
-            # COOKIE_SECRET=${COOKIE_SECRET}
-            # DATABASE_URL=${DATABASE_URL}
-            # DB_NAME=${DB_NAME}
-
-            EOF
-            echo ".env file contents:"
-            cat .env
-            echo ".env file created/updated successfully."
 
             # --- ВАЖНО ---
             # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
