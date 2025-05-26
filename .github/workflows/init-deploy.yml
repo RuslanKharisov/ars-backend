@@ -9,6 +9,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest # Вы можете использовать self-hosted runner, если нужно
 
+    # --- Переменные окружения для ВСЕГО JOB-а ---
+    # Здесь мы определяем все переменные окружения, включая те, что из секретов GitHub.
+    # Они будут доступны для ВСЕХ ШАГОВ в этом JOB.
+    env:
+      NODE_ENV: production
+      STORE_CORS: ${{ secrets.STORE_CORS }}
+      ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
+      AUTH_CORS: ${{ secrets.AUTH_CORS }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+
     steps:
       - name: Checkout code
         # Выгружает код из вашего репозитория
@@ -30,7 +44,7 @@ jobs:
           # Опционально: исключите определенные директории/файлы при копировании
           # exclude: ".git,.github,node_modules,dist"
 
-      - name: Restart Medusa service via PM2
+      - name: Configure and Restart Medusa service
         # Используем action для выполнения команды по SSH
         uses: appleboy/ssh-action@v1.0.0 # Проверьте наличие более новой версии, если хотите
         with:
@@ -38,9 +52,31 @@ jobs:
           username: ${{ secrets.SSH_USER }} # Имя пользователя SSH из секретов GitHub
           key: ${{ secrets.SERVER_SSH_KEY }} # Приватный SSH-ключ из секретов GitHub
           port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
+
           script: |
+            echo "Executing deployment script on server...
+
             # Переходим в директорию проекта на сервере
-            cd /home/admin2/ars-backend
+            cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }
+
+            # --- Создание или обновление .env файла из env переменных JOB-а ---
+            # Переменные, определенные на уровне JOB, доступны здесь как обычные $ПЕРЕМЕННАЯ.
+
+            echo "Creating or updating .env file..."
+            cat > .env << EOF
+            NODE_ENV=${NODE_ENV}
+            STORE_CORS=${STORE_CORS}
+            ADMIN_CORS=${ADMIN_CORS}
+            AUTH_CORS=${AUTH_CORS}
+            REDIS_URL=${REDIS_URL}
+            JWT_SECRET=${JWT_SECRET}
+            COOKIE_SECRET=${COOKIE_SECRET}
+            DATABASE_URL=${DATABASE_URL}
+            DB_NAME=${DB_NAME}
+            # --- ДОБАВЬТЕ ВСЕ ВАШИ ДРУГИЕ НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ ИЗ JOB ENV СЮДА ---
+            # EXAMPLE: MINIO_ENDPOINT=${MINIO_ENDPOINT}
+            EOF
+            echo ".env file created/updated successfully."
 
             # --- ВАЖНО ---
             # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
@@ -51,4 +87,5 @@ jobs:
             # Замените 'ars-backend' на фактическое имя вашего процесса PM2.
             # Если PM2 не запущен или имя процесса неверно, эта команда может завершиться с ошибкой.
             echo "Попытка перезапустить процесс PM2 'ars-backend'..."
-            pm2 restart ars-backend || echo "Не удалось перезапустить процесс PM2 'ars-backend'. Возможно, он не запущен или имя неверно. Проверьте вручную на сервере."
+            pm2 restart ars-backend || { echo "Warning: PM2 process 'medusa-b2b' could not be restarted. It might not be running or the name is incorrect. Please check manually on the server."; true; }
+            echo "Deployment script finished."
