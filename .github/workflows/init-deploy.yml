@@ -47,9 +47,22 @@ jobs:
             echo "Executing deployment script on server..."
 
             # Переходим в директорию проекта на сервере
-            cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }           
+            cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }   
 
-            # Восстанавливаем .env
+            # --- Установка зависимостей ---
+            echo "Running yarn install..."
+            # Используем --frozen-lockfile в CI/CD для предсказуемости
+            # --production пропустит devDependencies
+            yarn install --production --frozen-lockfile || { echo "Error: yarn install failed"; exit 1; }
+            echo "yarn install finished."  
+
+            # --- Сборка проекта ---
+            # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
+            echo "Running yarn build..."
+            yarn build || { echo "Error: yarn build failed"; exit 1; }
+            echo "yarn build finished."
+
+            # --- Восстанавливаем .env ---
             - name: Restore .env
               run: |
                 if [ -f /home/admin2/secrets/.env-backend ]; then
@@ -66,9 +79,23 @@ jobs:
             # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
             # ПОСЛЕ САМОГО ПЕРВОГО успешного копирования файлов этим рабочим процессом.
 
-            # Для последующих запусков эта команда перезапускает процесс PM2.
-            # Замените 'ars-backend' на фактическое имя вашего процесса PM2.
-            # Если PM2 не запущен или имя процесса неверно, эта команда может завершиться с ошибкой.
-            echo "Попытка перезапустить процесс PM2 'ars-backend'..."
-            pm2 restart ars-backend || { echo "Warning: PM2 process 'medusa-b2b' could not be restarted. It might not be running or the name is incorrect. Please check manually on the server."; true; }
+            echo "Checking PM2 process 'ars-backend' status..."
+
+            # Проверяем, существует ли процесс с именем 'ars-backend'
+            # > /dev/null 2>&1 скрывает стандартный вывод и ошибки pm2 show
+            if pm2 show ars-backend > /dev/null 2>&1; then
+              # Процесс существует, перезапускаем его
+              echo "PM2 process 'ars-backend' found. Attempting restart..."
+              pm2 restart ars-backend || { echo "Error: Failed to restart PM2 process 'ars-backend'. Check PM2 logs on the server."; exit 1; }
+              echo "PM2 process 'ars-backend' restarted successfully."
+            else
+              # Процесс не найден, запускаем его впервые
+              echo "PM2 process 'ars-backend' not found. Attempting to start for the first time..."
+              # !!! ВАЖНО: Замените 'yarn start' на вашу фактическую команду запуска Medusa !!!
+              # Например: node build/index.js, npm start, или yarn start
+              # Для 'yarn start' команда для PM2 обычно выглядит так: pm2 start yarn --name ars-backend -- start
+              pm2 start yarn --name ars-backend -- start || { echo "Error: Failed to start PM2 process 'ars-backend'. Check PM2 logs on the server and ensure dependencies are installed."; exit 1; }
+              echo "PM2 process 'ars-backend' started successfully."
+            fi
+
             echo "Deployment script finished."
