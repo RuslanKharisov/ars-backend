@@ -16,13 +16,13 @@ jobs:
     env:
       NODE_ENV: production
       STORE_CORS: ${{ secrets.STORE_CORS }}
-      ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
-      AUTH_CORS: ${{ secrets.AUTH_CORS }}
-      REDIS_URL: ${{ secrets.REDIS_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DB_NAME: ${{ secrets.DB_NAME }}
+      # ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
+      # AUTH_CORS: ${{ secrets.AUTH_CORS }}
+      # REDIS_URL: ${{ secrets.REDIS_URL }}
+      # JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+      # DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # DB_NAME: ${{ secrets.DB_NAME }}
 
     steps:
       - name: Checkout code
@@ -57,13 +57,13 @@ jobs:
           envs: |
             NODE_ENV
             STORE_CORS
-            ADMIN_CORS
-            AUTH_CORS
-            REDIS_URL
-            JWT_SECRET
-            COOKIE_SECRET
-            DATABASE_URL
-            DB_NAME
+            # ADMIN_CORS
+            # AUTH_CORS
+            # REDIS_URL
+            # JWT_SECRET
+            # COOKIE_SECRET
+            # DATABASE_URL
+            # DB_NAME
 
           script: |
             echo "Executing deployment script on server..."
@@ -76,13 +76,13 @@ jobs:
             echo "--- Debugging remote environment variables ---"
             echo "NODE_ENV: '${NODE_ENV}'"
             echo "STORE_CORS: '${STORE_CORS}'"
-            echo "ADMIN_CORS: '${ADMIN_CORS}'"
-            echo "AUTH_CORS: '${AUTH_CORS}'"
-            echo "REDIS_URL: '${REDIS_URL}'"
-            echo "JWT_SECRET: '${JWT_SECRET}'"
-            echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
-            echo "DATABASE_URL: `${DATABASE_URL}`"
-            echo "DB_NAME: '${DB_NAME}'"
+            # echo "ADMIN_CORS: '${ADMIN_CORS}'"
+            # echo "AUTH_CORS: '${AUTH_CORS}'"
+            # echo "REDIS_URL: '${REDIS_URL}'"
+            # echo "JWT_SECRET: '${JWT_SECRET}'"
+            # echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
+            # echo "DATABASE_URL: `${DATABASE_URL}`"
+            # echo "DB_NAME: '${DB_NAME}'"
             echo "--- End Debugging ---"
             # --------------------------
 
@@ -93,13 +93,13 @@ jobs:
             cat > .env << 'EOF'
             NODE_ENV=${NODE_ENV}
             STORE_CORS=${STORE_CORS}
-            ADMIN_CORS=${ADMIN_CORS}
-            AUTH_CORS=${AUTH_CORS}
-            REDIS_URL=${REDIS_URL}
-            JWT_SECRET=${JWT_SECRET}
-            COOKIE_SECRET=${COOKIE_SECRET}
-            DATABASE_URL=${DATABASE_URL}
-            DB_NAME=${DB_NAME}
+            # ADMIN_CORS=${ADMIN_CORS}
+            # AUTH_CORS=${AUTH_CORS}
+            # REDIS_URL=${REDIS_URL}
+            # JWT_SECRET=${JWT_SECRET}
+            # COOKIE_SECRET=${COOKIE_SECRET}
+            # DATABASE_URL=${DATABASE_URL}
+            # DB_NAME=${DB_NAME}
 
             EOF
             echo ".env file contents:"
