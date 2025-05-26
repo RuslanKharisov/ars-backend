@@ -54,7 +54,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }} # Порт SSH из секретов GitHub (опционально, по умолчанию 22)
 
           script: |
-            echo "Executing deployment script on server...
+            echo "Executing deployment script on server..."
 
             # Переходим в директорию проекта на сервере
             cd /home/admin2/ars-backend || { echo "Error: Directory /home/admin2/ars-backend not found"; exit 1; }
