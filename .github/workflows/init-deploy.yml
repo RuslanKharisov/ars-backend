@@ -12,23 +12,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Устанавливаем Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-
-      # 3. Создаем .env файл
+      # 2. Создаем .env файл
       - name: Create .env
         run: |
           echo "${{ secrets.ENV_BACKEND }}" > .env
 
-      # 4. Устанавливаем зависимости
-      - name: Install dependencies
-        run: yarn install
-
-      # 5. Список файлов для копирования
-      - name: Prepare deploy list
+      # 3. Список файлов для копирования
+      - name: Prepare deploy archive
         run: |
           {
             echo ".env"
@@ -43,7 +33,7 @@ jobs:
           tar -czf deploy.tar.gz -T deploy-list.txt
           ls -lh deploy.tar.gz
 
-      # 6. Настройка SSH
+      # 4. Настройка SSH
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -51,37 +41,35 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
 
-      # 7. Передача файлов
-      - name: Transfer files
+      # 5. Передача архива на сервер
+      - name: Transfer files to server
         run: |
           scp -i ~/.ssh/id_ed25519 deploy.tar.gz \
               ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/deploy.tar.gz
 
-      # 8. Распаковка на сервере
-      - name: Unpack project on server
+      # 6. Распаковка на сервере
+      - name: Unpack and prepare on server
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           set -euo pipefail
 
-          # Папка деплоя
           APP_DIR="/home/admin2/medusa-b2b"
 
-          # Создание директории и очистка
+          echo "--- Preparing directory ---"
           mkdir -p "$APP_DIR"
           cd "$APP_DIR"
           find . -maxdepth 1 ! -name '.' -exec rm -rf {} +
 
-          # Распаковка
+          echo "--- Extracting project files ---"
           tar -xzf /tmp/deploy.tar.gz
           rm /tmp/deploy.tar.gz
 
-          echo "--- Project unpacked. Ready for manual setup. ---"
-          echo "Next steps (manually):"
+          echo "--- Project unpacked. Next steps (manual): ---"
           echo "1. cd $APP_DIR"
           echo "2. yarn install"
           echo "3. yarn medusa db:create"
           echo "4. yarn medusa db:migrate"
           echo "5. yarn run seed"
           echo "6. yarn medusa user -e admin@site.com -p strongpass -i admin"
-          echo "7. yarn start (or pm2)"
+          echo "7. yarn start"
           EOF
