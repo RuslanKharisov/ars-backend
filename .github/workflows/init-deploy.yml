@@ -8,21 +8,21 @@ on:
 # --- Переменные окружения для ВСЕГО JOB-а ---
 # Здесь мы определяем все переменные окружения, включая те, что из секретов GitHub.
 # Они будут доступны для ВСЕХ ШАГОВ в этом JOB.
-env:
-  NODE_ENV: production
-  STORE_CORS: ${{ secrets.STORE_CORS }}
-  ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
-  AUTH_CORS: ${{ secrets.AUTH_CORS }}
-  REDIS_URL: ${{ secrets.REDIS_URL }}
-  JWT_SECRET: ${{ secrets.JWT_SECRET }}
-  COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  DB_NAME: ${{ secrets.DB_NAME }}
-  echo "DATABASE_URL: ${DATABASE_URL}"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest # Вы можете использовать self-hosted runner, если нужно
+
+    env:
+      NODE_ENV: production
+      STORE_CORS: ${{ secrets.STORE_CORS }}
+      ADMIN_CORS: ${{ secrets.ADMIN_CORS }}
+      AUTH_CORS: ${{ secrets.AUTH_CORS }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DB_NAME: ${{ secrets.DB_NAME }}
 
     steps:
       - name: Checkout code
@@ -81,7 +81,7 @@ jobs:
             echo "REDIS_URL: '${REDIS_URL}'"
             echo "JWT_SECRET: '${JWT_SECRET}'"
             echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
-            echo `DATABASE_URL:` ${DATABASE_URL}
+            echo `DATABASE_URL: ${DATABASE_URL}`
             echo "DB_NAME: '${DB_NAME}'"
             echo "--- End Debugging ---"
             # --------------------------
