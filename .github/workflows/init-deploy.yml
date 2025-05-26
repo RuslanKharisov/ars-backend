@@ -18,6 +18,7 @@ env:
   COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   DB_NAME: ${{ secrets.DB_NAME }}
+  echo "DATABASE_URL: ${DATABASE_URL}"
 
 jobs:
   deploy:
@@ -80,7 +81,7 @@ jobs:
             echo "REDIS_URL: '${REDIS_URL}'"
             echo "JWT_SECRET: '${JWT_SECRET}'"
             echo "COOKIE_SECRET: '${COOKIE_SECRET}'"
-            echo "DATABASE_URL: '${DATABASE_URL}'"
+            echo `DATABASE_URL:` ${DATABASE_URL}
             echo "DB_NAME: '${DB_NAME}'"
             echo "--- End Debugging ---"
             # --------------------------
