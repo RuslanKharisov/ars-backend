@@ -77,22 +77,15 @@ jobs:
             echo "build finished."
 
             # ---  установка зависимостей и миграции ---
-            cd .medusa/server && yarn install
-            cd ../..
+            cd .medusa/server && yarn install && yarn predeploy
 
-            yarn predeploy
-
-
-            # --- ВАЖНО ---
-            # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
-            # ПОСЛЕ САМОГО ПЕРВОГО успешного копирования файлов этим рабочим процессом.
 
             # Перезапуск сервера
             if pm2 exists medusa-server > /dev/null 2>&1; then
               pm2 restart medusa-server || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
               echo "PM2 process 'medusa-server' restarted successfully."
             else
-              pm2 start .medusa/server/dist/main.js --name medusa-server --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
+              npx pm2 start --name medusa-server --yarn start --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
               echo "PM2 process 'medusa-server' started successfully."
             fi
 
@@ -101,7 +94,7 @@ jobs:
               pm2 restart medusa-worker || { echo "Error: Failed to restart 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' restarted successfully."
             else
-              pm2 start .medusa/server/dist/main.js --name medusa-worker --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
+              npx pm2 start --name medusa-worker --yarn start --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' started successfully."
             fi
 
