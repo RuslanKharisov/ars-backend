@@ -73,14 +73,14 @@ jobs:
             # --- Сборка проекта ---
             # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
             echo "Running build..."
-            npx medusa build || { echo "Error: build failed"; exit 1; }
+            yarn build || { echo "Error: build failed"; exit 1; }
             echo "build finished."
 
             # ---  установка зависимостей и миграции ---
-            cd .medusa/server && npm install
+            cd .medusa/server && yarn install
             cd ../..
 
-            npm run predeploy
+            yarn predeploy
 
 
             # --- ВАЖНО ---
