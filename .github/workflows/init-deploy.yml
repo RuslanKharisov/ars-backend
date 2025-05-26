@@ -58,48 +58,51 @@ jobs:
             # Используем --frozen-lockfile в CI/CD для предсказуемости
             # --production пропустит devDependencies
             yarn install --immutable --immutable-cache || { echo "Error: yarn install failed"; exit 1; }
-            echo "yarn install finished."  
-
-            # --- Сборка проекта ---
-            # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
-            echo "Running yarn build..."
-            yarn build || { echo "Error: yarn build failed"; exit 1; }
-            echo "yarn build finished."
+            echo "yarn install finished." 
 
             # --- Восстанавливаем .env ---
             - name: Restore .env
               run: |
                 if [ -f /home/admin2/secrets/.env-backend ]; then
-                  cp /home/admin2/secrets/.env-backend .env
-                  echo ".env restored"
+                  cp /home/admin2/secrets/.env-backend .env.production
+                  echo ".env.production restored"
                 else
                   echo "No .env-backend to copy"
                 fi
 
+            # --- Сборка проекта ---
+            # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
+            echo "Running build..."
+            npx medusa build || { echo "Error: build failed"; exit 1; }
+            echo "build finished."
 
+            # ---  установка зависимостей и миграции ---
+            cd .medusa/server && npm install
+            cd ../..
+
+            npm run predeploy
 
 
             # --- ВАЖНО ---
             # Этот рабочий процесс ПРЕДПОЛАГАЕТ, что вы ВРУЧНУЮ выполнили ПЕРВОНАЧАЛЬНУЮ настройку
             # ПОСЛЕ САМОГО ПЕРВОГО успешного копирования файлов этим рабочим процессом.
 
-            echo "Checking PM2 process 'ars-backend' status..."
-
-            # Проверяем, существует ли процесс с именем 'ars-backend'
-            # > /dev/null 2>&1 скрывает стандартный вывод и ошибки pm2 show
-            if pm2 show ars-backend > /dev/null 2>&1; then
-              # Процесс существует, перезапускаем его
-              echo "PM2 process 'ars-backend' found. Attempting restart..."
-              pm2 restart ars-backend || { echo "Error: Failed to restart PM2 process 'ars-backend'. Check PM2 logs on the server."; exit 1; }
-              echo "PM2 process 'ars-backend' restarted successfully."
+            # Перезапуск сервера
+            if pm2 exists medusa-server > /dev/null 2>&1; then
+              pm2 restart medusa-server || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
+              echo "PM2 process 'medusa-server' restarted successfully."
             else
-              # Процесс не найден, запускаем его впервые
-              echo "PM2 process 'ars-backend' not found. Attempting to start for the first time..."
-              # !!! ВАЖНО: Замените 'yarn start' на вашу фактическую команду запуска Medusa !!!
-              # Например: node build/index.js, npm start, или yarn start
-              # Для 'yarn start' команда для PM2 обычно выглядит так: pm2 start yarn --name ars-backend -- start
-              pm2 start "node .medusa/server" --name ars-backend || { echo "Error: Failed to start PM2 process 'ars-backend'. Check PM2 logs on the server and ensure dependencies are installed."; exit 1; }
-              echo "PM2 process 'ars-backend' started successfully."
+              pm2 start .medusa/server/dist/main.js --name medusa-server --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
+              echo "PM2 process 'medusa-server' started successfully."
+            fi
+
+            # Перезапуск воркера
+            if pm2 exists medusa-worker > /dev/null 2>&1; then
+              pm2 restart medusa-worker || { echo "Error: Failed to restart 'medusa-worker'"; exit 1; }
+              echo "PM2 process 'medusa-worker' restarted successfully."
+            else
+              pm2 start .medusa/server/dist/main.js --name medusa-worker --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
+              echo "PM2 process 'medusa-worker' started successfully."
             fi
 
             echo "Deployment script finished."
