@@ -90,7 +90,7 @@ jobs:
             # Переменные, определенные на уровне JOB, доступны здесь как обычные $ПЕРЕМЕННАЯ.
 
             echo "Creating or updating .env file...."
-            cat > .env << EOF
+            cat > .env << 'EOF'
             NODE_ENV=${NODE_ENV}
             STORE_CORS=${STORE_CORS}
             ADMIN_CORS=${ADMIN_CORS}
@@ -100,9 +100,10 @@ jobs:
             COOKIE_SECRET=${COOKIE_SECRET}
             DATABASE_URL=${DATABASE_URL}
             DB_NAME=${DB_NAME}
-            # --- ДОБАВЬТЕ ВСЕ ВАШИ ДРУГИЕ НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ ИЗ JOB ENV СЮДА ---
-            # EXAMPLE: MINIO_ENDPOINT=${MINIO_ENDPOINT}
+
             EOF
+            echo ".env file contents:"
+            cat .env
             echo ".env file created/updated successfully."
 
             # --- ВАЖНО ---
