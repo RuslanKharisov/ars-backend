@@ -60,23 +60,24 @@ jobs:
             yarn install --immutable --immutable-cache || { echo "Error: yarn install failed"; exit 1; }
             echo "yarn install finished." 
 
-            # --- Восстанавливаем .env ---
-            if [ -f /home/admin2/secrets/.env-backend ]; then
-              cp /home/admin2/secrets/.env-backend .env.production
-              echo ".env.production restored"
-            else
-              echo "No .env-backend to copy"
-            fi  
 
 
             # --- Сборка проекта ---
-            # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
-            echo "Running build..."
-            yarn build || { echo "Error: build failed"; exit 1; }
-            echo "build finished."
-
-            # ---  установка зависимостей и миграции ---
-            cd .medusa/server && yarn install && yarn predeploy
+              # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
+              echo "Running build..."
+              yarn build || { echo "Error: build failed"; exit 1; }
+              echo "build finished."
+              
+              # ---  установка зависимостей и миграции ---
+                cd .medusa/server && yarn install && yarn predeploy
+                
+              # --- Восстанавливаем .env ---
+              if [ -f /home/admin2/secrets/.env-backend ]; then
+                cp /home/admin2/secrets/.env-backend .env.production
+                echo ".env.production restored"
+              else
+                echo "No .env-backend to copy"
+              fi  
 
 
             # Перезапуск сервера
