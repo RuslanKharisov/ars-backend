@@ -73,8 +73,8 @@ jobs:
                 
               # --- Восстанавливаем .env ---
               if [ -f /home/admin2/secrets/.env-backend ]; then
-                cp /home/admin2/secrets/.env-backend .env.production
-                echo ".env.production restored"
+                cp /home/admin2/secrets/.env-backend .env
+                echo ".env restored"
               else
                 echo "No .env-backend to copy"
               fi  
