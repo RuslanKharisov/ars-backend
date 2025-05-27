@@ -81,12 +81,12 @@ jobs:
 
 
             # Перезапуск сервера
-            if pm2 exists medusa-server > /dev/null 2>&1; then
-              pm2 restart medusa-server || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
-              echo "PM2 process 'medusa-server' restarted successfully."
+            if pm2 exists medusa-admin > /dev/null 2>&1; then
+              pm2 restart medusa-admin || { echo "Error: Failed to restart 'medusa-admin'"; exit 1; }
+              echo "PM2 process 'medusa-admin' restarted successfully."
             else
-              npx pm2 start --name medusa-server --run start --env production || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
-              echo "PM2 process 'medusa-server' started successfully."
+              pm2 start npm --name "medusa-admin" -- run start || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
+              echo "PM2 process 'medusa-admin' started successfully."
             fi
 
             # Перезапуск воркера
@@ -94,7 +94,7 @@ jobs:
               pm2 restart medusa-worker || { echo "Error: Failed to restart 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' restarted successfully."
             else
-              npx pm2 start --name medusa-worker --run start --env production -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
+              pm2 start npm --name medusa-worker --run start -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
               echo "PM2 process 'medusa-worker' started successfully."
             fi
 
