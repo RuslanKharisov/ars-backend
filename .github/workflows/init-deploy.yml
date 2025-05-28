@@ -55,36 +55,32 @@ jobs:
 
             # --- Установка зависимостей ---
             echo "Running yarn install..."
-            # Используем --frozen-lockfile в CI/CD для предсказуемости
-            # --production пропустит devDependencies
             yarn install --immutable --immutable-cache || { echo "Error: yarn install failed"; exit 1; }
             echo "yarn install finished." 
 
 
-
             # --- Сборка проекта ---
-              # Medusa часто требует сборки (например, компиляция TypeScript) перед запуском.
               echo "Running build..."
               yarn build || { echo "Error: build failed"; exit 1; }
               echo "build finished."
               
-              # ---  установка зависимостей ---
-                cd .medusa/server && yarn install
-                
-              # --- Восстанавливаем .env ---
-              if [ -f /home/admin2/secrets/.env-backend ]; then
-                cp /home/admin2/secrets/.env-backend .env
-                echo ".env restored"
-              else
-                echo "No .env-backend to copy"
-              fi
+            # ---  установка зависимостей ---
+              cd .medusa/server && yarn install
+              
+            # --- Восстанавливаем .env ---
+            if [ -f /home/admin2/secrets/.env-backend ]; then
+              cp /home/admin2/secrets/.env-backend .env
+              echo ".env restored"
+            else
+              echo "No .env-backend to copy"
+            fi
 
-              # ---  запуск миграции ---
-              yarn predeploy
+            # ---  запуск миграции ---
+            yarn predeploy
 
             # Перезапуск сервера
 
-            pm2 start medusa-admin || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
+            pm2 restart medusa-admin || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
             echo "PM2 process 'medusa-admin' started successfully."
 
 
