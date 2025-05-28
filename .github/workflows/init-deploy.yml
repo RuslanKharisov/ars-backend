@@ -5,21 +5,14 @@ on:
     branches:
       - main # Убедитесь, что это имя вашей основной ветки (например, master)
 
-# --- Переменные окружения для ВСЕГО JOB-а ---
-# Здесь мы определяем все переменные окружения, включая те, что из секретов GitHub.
-# Они будут доступны для ВСЕХ ШАГОВ в этом JOB.
-
 jobs:
   deploy:
-    runs-on: ubuntu-latest # Вы можете использовать self-hosted runner, если нужно
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         # Выгружает код из вашего репозитория
         uses: actions/checkout@v4
-
-      # Пропускаем шаги сборки (например, yarn install, build) на CI runner,
-      # поскольку они будут выполнены вручную на сервере в первый раз.
 
       - name: Copy project files to server
         # Используем action для копирования файлов по SCP
@@ -53,21 +46,16 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use 22.13.1
 
-            # --- Установка зависимостей ---
             echo "Running yarn install..."
             yarn install --immutable --immutable-cache || { echo "Error: yarn install failed"; exit 1; }
-            echo "yarn install finished." 
 
-
-            # --- Сборка проекта ---
-              echo "Running build..."
-              yarn build || { echo "Error: build failed"; exit 1; }
-              echo "build finished."
+            echo "Running build..."
+            yarn build || { echo "Error: build failed"; exit 1; }
               
-            # ---  установка зависимостей ---
-              cd .medusa/server && yarn install
+            echo "Installing server dependencies..."
+            cd .medusa/server && yarn install
               
-            # --- Восстанавливаем .env ---
+            echo "Restoring .env..."
             if [ -f /home/admin2/secrets/.env-backend ]; then
               cp /home/admin2/secrets/.env-backend .env
               echo ".env restored"
@@ -75,13 +63,11 @@ jobs:
               echo "No .env-backend to copy"
             fi
 
-            # ---  запуск миграции ---
+            echo "Installing server dependencies..."
             yarn predeploy
 
-            # Перезапуск сервера
-
+            echo "Restarting Medusa server..."
             pm2 restart medusa-admin || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
-            echo "PM2 process 'medusa-admin' started successfully."
 
 
 
