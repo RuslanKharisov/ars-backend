@@ -68,8 +68,8 @@ jobs:
               yarn build || { echo "Error: build failed"; exit 1; }
               echo "build finished."
               
-              # ---  установка зависимостей и миграции ---
-                cd .medusa/server && yarn install && yarn predeploy
+              # ---  установка зависимостей ---
+                cd .medusa/server && yarn install
                 
               # --- Восстанавливаем .env ---
               if [ -f /home/admin2/secrets/.env-backend ]; then
@@ -77,25 +77,16 @@ jobs:
                 echo ".env restored"
               else
                 echo "No .env-backend to copy"
-              fi  
+              fi
 
+              # ---  запуск миграции ---
+              yarn predeploy
 
             # Перезапуск сервера
-            if pm2 exists medusa-admin > /dev/null 2>&1; then
-              pm2 restart medusa-admin || { echo "Error: Failed to restart 'medusa-admin'"; exit 1; }
-              echo "PM2 process 'medusa-admin' restarted successfully."
-            else
-              pm2 start npm --name "medusa-admin" -- run start || { echo "Error: Failed to start 'medusa-server'"; exit 1; }
-              echo "PM2 process 'medusa-admin' started successfully."
-            fi
 
-            # Перезапуск воркера
-            if pm2 exists medusa-worker > /dev/null 2>&1; then
-              pm2 restart medusa-worker || { echo "Error: Failed to restart 'medusa-worker'"; exit 1; }
-              echo "PM2 process 'medusa-worker' restarted successfully."
-            else
-              pm2 start npm --name medusa-worker --run start -- DISABLE_MEDUSA_ADMIN=true MEDUSA_WORKER_MODE=worker || { echo "Error: Failed to start 'medusa-worker'"; exit 1; }
-              echo "PM2 process 'medusa-worker' started successfully."
-            fi
+            pm2 start medusa-admin || { echo "Error: Failed to restart 'medusa-server'"; exit 1; }
+            echo "PM2 process 'medusa-admin' started successfully."
+
+
 
             echo "Deployment script finished."
